@@ -1,0 +1,19 @@
+{
+  "name": "testlama",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "bun run index.js",
+    "go": "node index.js"
+  },
+  "keywords": [],
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "hyllama": "^0.2.2",
+    "node-llama-cpp": "^3.3.1"
+  }
+}
