@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat com Llama - Frontend Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header .conversation-id {
+            font-size: 12px;
+            opacity: 0.8;
+            word-break: break-all;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: slideIn 0.3s ease-in-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.assistant .message-bubble {
+            background: #f0f0f0;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            padding: 0 16px;
+            align-self: flex-end;
+        }
+
+        .loading {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f0f0f0;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .loading span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #667eea;
+            animation: bounce 1.4s ease-in-out infinite;
+        }
+
+        .loading span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            40% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        .input-area {
+            padding: 20px;
+            border-top: 1px solid #ddd;
+            background: #fafafa;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="text"]:disabled {
+            background: #f0f0f0;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: opacity 0.3s;
+            font-size: 14px;
+        }
+
+        button:hover:not(:disabled) {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            padding: 8px 12px;
+            font-size: 12px;
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #c00;
+        }
+
+        .success {
+            background: #efe;
+            color: #0a0;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #0a0;
+        }
+
+        .footer {
+            padding: 10px 20px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #999;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .controls button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Chat com Llama</h1>
+            <div class="conversation-id" id="conversationDisplay">Nova conversa</div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="empty-state">
+                <div class="empty-state-icon">💬</div>
+                <p>Comece uma conversa digitando uma mensagem</p>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Digite sua mensagem..." 
+                    autocomplete="off"
+                >
+                <button id="sendButton" onclick="sendMessage()">Enviar</button>
+            </div>
+            <div class="controls">
+                <button onclick="loadConversations()">📚 Conversas</button>
+                <button onclick="clearChat()">🗑️ Limpar</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span id="status">Pronto</span>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let conversationId = null;
+        let isLoading = false;
+
+        // Elementos do DOM
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const conversationDisplay = document.getElementById('conversationDisplay');
+        const statusElement = document.getElementById('status');
+
+        // Event listeners
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isLoading) {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                showError('Por favor, digite uma mensagem');
+                return;
+            }
+
+            if (isLoading) return;
+
+            isLoading = true;
+            sendButton.disabled = true;
+            messageInput.disabled = true;
+            updateStatus('Enviando...');
+
+            try {
+                // Adicionar mensagem do usuário ao chat
+                addMessage('user', message);
+                messageInput.value = '';
+
+                // Mostrar loading
+                const loadingEl = document.createElement('div');
+                loadingEl.className = 'message assistant';
+                loadingEl.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+                chatContainer.appendChild(loadingEl);
+                scrollToBottom();
+
+                // Enviar requisição
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message,
+                        ...(conversationId && { conversationId })
+                    })
+                });
+
+                const data = await response.json();
+
+                // Remover loading
+                loadingEl.remove();
+
+                if (data.status === 'error') {
+                    showError(data.errors?.[0] || data.message);
+                    return;
+                }
+
+                // Salvar conversation ID
+                conversationId = data.data.conversationId;
+                updateConversationDisplay();
+
+                // Adicionar resposta da IA
+                addMessage('assistant', data.data.response);
+                updateStatus('Pronto');
+
+            } catch (error) {
+                showError('Erro ao enviar mensagem: ' + error.message);
+                updateStatus('Erro');
+            } finally {
+                isLoading = false;
+                sendButton.disabled = false;
+                messageInput.disabled = false;
+            }
+        }
+
+        function addMessage(role, content) {
+            // Remover empty state se existir
+            const emptyState = chatContainer.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${role}`;
+            
+            const time = new Date().toLocaleTimeString('pt-BR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
+            messageEl.innerHTML = `
+                <div class="message-bubble">${escapeHtml(content)}</div>
+                <div class="message-time">${time}</div>
+            `;
+
+            chatContainer.appendChild(messageEl);
+            scrollToBottom();
+        }
+
+        async function loadConversations() {
+            updateStatus('Carregando conversas...');
+            
+            try {
+                const response = await fetch(`${API_URL}/conversations`);
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    showError('Erro ao carregar conversas');
+                    return;
+                }
+
+                const conversations = data.data.conversations;
+                
+                if (conversations.length === 0) {
+                    showError('Nenhuma conversa encontrada');
+                    return;
+                }
+
+                const list = conversations
+                    .map(c => `• ${c.id.substring(0, 20)}... (${c.messageCount} msgs)`)
+                    .join('\n');
+
+                showMessage(`Conversas encontradas:\n${list}`);
+                updateStatus('Pronto');
+
+            } catch (error) {
+                showError('Erro ao carregar conversas: ' + error.message);
+            }
+        }
+
+        function clearChat() {
+            if (confirm('Tem certeza que deseja limpar o histórico?')) {
+                chatContainer.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💬</div><p>Comece uma nova conversa</p></div>';
+                conversationId = null;
+                updateConversationDisplay();
+                updateStatus('Pronto');
+            }
+        }
+
+        function updateConversationDisplay() {
+            if (conversationId) {
+                conversationDisplay.textContent = `ID: ${conversationId}`;
+            } else {
+                conversationDisplay.textContent = 'Nova conversa';
+            }
+        }
+
+        function showError(message) {
+            const errorEl = document.createElement('div');
+            errorEl.className = 'error';
+            errorEl.textContent = message;
+            chatContainer.appendChild(errorEl);
+            scrollToBottom();
+        }
+
+        function showMessage(message) {
+            const msgEl = document.createElement('div');
+            msgEl.className = 'success';
+            msgEl.textContent = message;
+            msgEl.style.whiteSpace = 'pre-wrap';
+            chatContainer.appendChild(msgEl);
+            scrollToBottom();
+        }
+
+        function updateStatus(message) {
+            statusElement.textContent = message;
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Verificar se servidor está online ao carregar
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    updateStatus('Conectado ao servidor ✅');
+                }
+            } catch (error) {
+                showError('❌ Não foi possível conectar ao servidor. Certifique-se de que ele está rodando em http://localhost:3000');
+                sendButton.disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
