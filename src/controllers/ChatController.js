@@ -69,7 +69,7 @@ export class ChatController {
         try {
             this.logger.http('✅ Requisição de health check');
             res.json(ResponseHelper.success({ 
-                modelName: config.modelName,
+                modelName: config.modelPath,
                 status: "OK",
                 uptime: process.uptime(),
                 conversationCount: this.historyService.listConversations().length,
