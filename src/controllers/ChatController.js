@@ -1,6 +1,6 @@
 import { ResponseHelper } from '../utils/ResponseHelper.js';
 import { InputValidator } from '../utils/InputValidator.js';
-import { config } from './config.js';
+import { config } from './../../config.js';
 
 
 
