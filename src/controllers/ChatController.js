@@ -1,5 +1,8 @@
 import { ResponseHelper } from '../utils/ResponseHelper.js';
 import { InputValidator } from '../utils/InputValidator.js';
+import { config } from './config.js';
+
+
 
 /**
  * ChatController - Controller para gerenciar requisições de chat
@@ -24,6 +27,9 @@ export class ChatController {
 
             // Validação da mensagem
             const validation = InputValidator.validateChatMessage(message);
+
+            console.log(message)
+
             if (!validation.isValid) {
                 return res.status(400).json(ResponseHelper.validationError(validation.error));
             }
@@ -63,6 +69,7 @@ export class ChatController {
         try {
             this.logger.http('✅ Requisição de health check');
             res.json(ResponseHelper.success({ 
+                modelName: config.modelName,
                 status: "OK",
                 uptime: process.uptime(),
                 conversationCount: this.historyService.listConversations().length,

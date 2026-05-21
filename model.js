@@ -13,6 +13,21 @@ export async function initializeModel() {
         logger.debug(`📂 Caminho do modelo: ${config.modelPath}`);
         const model = await llama.loadModel({
             modelPath: config.modelPath,
+            numThreads: config.modelThreads,
+            contextSize: config.modelContextSize,
+            gpuLayers: config.modelGpuLayers,
+            gpuType: config.modelGpuType,
+            seed: config.modelSeed,
+            f16Kv: config.modelF16Kv,
+            logitsAll: config.modelLogitsAll,
+            vocabOnly: config.modelVocabOnly,
+            useMlock: config.modelUseMlock,
+            embedding: config.modelEmbedding,
+            useMmap: config.modelUseMmap,
+            lowVram: config.modelLowVram,
+            mirostat: config.modelMirostat,
+            mirostatTau: config.modelMirostatTau,
+            mirostatTaum: config.modelMirostatTaum,
         });
         
         logger.info('✅ Modelo Llama carregado com sucesso!');
