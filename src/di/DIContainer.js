@@ -1,7 +1,6 @@
 import { ConfigService } from '../services/ConfigService.js';
 import { LoggerService } from '../services/LoggerService.js';
 import { LlamaChatService } from '../services/LlamaChatService.js';
-import { ChatHistoryService } from '../services/ChatHistoryService.js';
 
 /**
  * DIContainer - Container de Injeção de Dependência
@@ -29,10 +28,6 @@ export class DIContainer {
         // Registra LlamaChatService como singleton
         const chatService = new LlamaChatService(config, logger);
         this.register('chatService', () => chatService);
-
-        // Registra ChatHistoryService como singleton
-        const historyService = new ChatHistoryService(logger);
-        this.register('historyService', () => historyService);
     }
 
     /**

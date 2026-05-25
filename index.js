@@ -16,7 +16,6 @@ async function createApp() {
     const config = container.resolve('config');
     const logger = container.resolve('logger');
     const chatService = container.resolve('chatService');
-    const historyService = container.resolve('historyService');
 
     // Cria a aplicação Express
     const app = express();
@@ -27,7 +26,7 @@ async function createApp() {
     app.use(createRequestLoggerMiddleware(logger));
 
     // Cria o controller com dependências injetadas
-    const chatController = new ChatController(chatService, logger, historyService);
+    const chatController = new ChatController(chatService, logger, config);
 
     // Registra as rotas
     app.use('/', createChatRoutes(chatController));

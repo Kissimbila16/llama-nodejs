@@ -12,7 +12,7 @@ export class ConfigService extends IConfig {
         this._nodeEnv = process.env.NODE_ENV || 'development';
         this._logLevel = process.env.LOG_LEVEL || 'debug';
         
-        const rawModelPath = process.env.MODEL_PATH || "Meta-Llama-3.1-8B-Instruct.Q4_K_M.gguf";
+        const rawModelPath = process.env.MODEL_PATH || "NVIDIA-Nemotron3-Nano-4B-Q4_K_M.gguf";
         this._modelPath = path.isAbsolute(rawModelPath) 
             ? rawModelPath 
             : path.join(process.cwd(), rawModelPath);
@@ -26,6 +26,11 @@ export class ConfigService extends IConfig {
         this._threads = process.env.THREADS ? parseInt(process.env.THREADS) : undefined;
             
         this._gpuType = process.env.GPU_TYPE || 'auto';
+
+        this._contextSize = process.env.CONTEXT_SIZE ? parseInt(process.env.CONTEXT_SIZE) : 2048;
+        this._batchSize = process.env.BATCH_SIZE ? parseInt(process.env.BATCH_SIZE) : 512;
+        this._maxTokens = process.env.MAX_TOKENS ? parseInt(process.env.MAX_TOKENS) : 512;
+        this._flashAttention = process.env.FLASH_ATTENTION === 'true';
     }
 
     getPort() {
@@ -58,5 +63,21 @@ export class ConfigService extends IConfig {
 
     getGpuType() {
         return this._gpuType;
+    }
+
+    getContextSize() {
+        return this._contextSize;
+    }
+
+    getBatchSize() {
+        return this._batchSize;
+    }
+
+    getMaxTokens() {
+        return this._maxTokens;
+    }
+
+    getFlashAttention() {
+        return this._flashAttention;
     }
 }

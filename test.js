@@ -5,7 +5,7 @@
  * Uso: node test-endpoints.js
  */
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://localhost:3001';
 
 async function runTests() {
     console.log('🧪 Iniciando bateria de testes dos endpoints...\n');

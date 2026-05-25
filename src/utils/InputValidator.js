@@ -81,4 +81,28 @@ export class InputValidator {
 
         return { isValid: true };
     }
+
+    /**
+     * Valida o histórico de chat vindo do frontend
+     * @param {Array} history - Array de mensagens [{role, content}]
+     * @returns {Object} { isValid: boolean, data: Array, error?: string }
+     */
+    static validateChatHistory(history) {
+        if (history === undefined || history === null) {
+            return { isValid: true, data: [] };
+        }
+
+        if (!Array.isArray(history)) {
+            return { isValid: false, error: 'O histórico deve ser uma lista de mensagens' };
+        }
+
+        // Verifica se cada item tem o formato básico exigido pelo node-llama-cpp
+        const isValidFormat = history.every(item => 
+            item && typeof item === 'object' && item.role && item.content
+        );
+
+        return isValidFormat 
+            ? { isValid: true, data: history }
+            : { isValid: false, error: 'Cada item do histórico deve conter "role" e "content"' };
+    }
 }

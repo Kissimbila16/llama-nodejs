@@ -10,7 +10,7 @@ export class LlamaChatService extends IChatService {
         super();
         this.config = config;
         this.logger = logger;
-        this.session = null;
+        this.context = null;
         this.model = null;
     }
 
@@ -29,18 +29,15 @@ export class LlamaChatService extends IChatService {
                 modelPath: this.config.getModelPath(),
                 gpuLayers: this.config.getGpuLayers(),
             });
-
-            this.logger.info('✅ Modelo Llama carregado com sucesso!');
-
-            // Criar sessão de chat
-            const context = await this.model.createContext({
-                threads: this.config.getThreads()
-            });
-            this.session = new LlamaChatSession({
-                contextSequence: context.getSequence(),
+            
+            this.context = await this.model.createContext({
+                threads: this.config.getThreads(),
+                contextSize: this.config.getContextSize(),
+                batchSize: this.config.getBatchSize(),
+                flashAttention: this.config.getFlashAttention()
             });
 
-            this.logger.info('💬 Sessão de chat criada com sucesso!');
+            this.logger.info('✅ Modelo e Contexto carregados com sucesso!');
         } catch (error) {
             this.logger.error(`❌ Erro ao inicializar modelo: ${error.message}`);
             throw error;
@@ -50,22 +47,42 @@ export class LlamaChatService extends IChatService {
     /**
      * Envia mensagem para o modelo Llama
      * @param {string} message - Mensagem do usuário
+     * @param {Array} history - Histórico de mensagens (opcional)
      * @returns {Promise<string>} Resposta da IA
      */
-    async sendMessage(message) {
-        if (!this.session) {
-            this.logger.error('⚠️ Sessão de chat não inicializada');
-            throw new Error("Sessão de chat não inicializada");
-        }
-
+    async sendMessage(message, history = []) {
         try {
             this.logger.info(`👤 Mensagem do usuário: ${message}`);
             const startTime = performance.now();
-            const aiResponse = await this.session.prompt(message);
+            const startMemory = process.memoryUsage().rss;
+
+            // Cria uma nova sessão injetando o histórico recebido
+            const session = new LlamaChatSession({
+                contextSequence: this.context.getSequence(),
+                history: history,
+                systemPrompt: `
+                    Você é um assistente especializado em:
+                    - programação
+                    - revisão e retificação de textos
+                    Responda sempre em português.`
+            });
+
+            const aiResponse = await session.prompt(message, {
+                maxTokens: this.config.getMaxTokens(),
+                temperature: 0.7
+            });
+
+            // Libera os recursos da sessão após o uso
+            session.dispose();
+
             const endTime = performance.now();
+            const endMemory = process.memoryUsage().rss;
+            
             const duration = (endTime - startTime).toFixed(2); // Tempo em milissegundos
-            this.logger.info(`🤖 Resposta da IA: ${aiResponse}`);
-            this.logger.info(`⏱️ Tempo de inferência: ${duration} ms`);
+            const memoryDiff = ((endMemory - startMemory) / 1024 / 1024).toFixed(2);
+
+            this.logger.info(`🤖 Resposta da IA concluída`);
+            this.logger.info(`⏱️ Tempo: ${duration} ms | 🧠 Memória Delta: ${memoryDiff} MB`);
             return aiResponse;
         } catch (error) {
             this.logger.error(`❌ Erro ao processar mensagem: ${error.message}`);
