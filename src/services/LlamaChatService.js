@@ -34,7 +34,8 @@ export class LlamaChatService extends IChatService {
                 threads: this.config.getThreads(),
                 contextSize: this.config.getContextSize(),
                 batchSize: this.config.getBatchSize(),
-                flashAttention: this.config.getFlashAttention()
+                flashAttention: this.config.getFlashAttention(),
+                sequences: 4 // Define um pool de sequências para evitar o erro "No sequences"
             });
 
             this.logger.info('✅ Modelo e Contexto carregados com sucesso!');
@@ -56,9 +57,14 @@ export class LlamaChatService extends IChatService {
             const startTime = performance.now();
             const startMemory = process.memoryUsage().rss;
 
+            const sequence = this.context.getSequence();
+            if (!sequence) {
+                throw new Error("Não foi possível obter uma sequência livre do contexto");
+            }
+
             // Cria uma nova sessão injetando o histórico recebido
             const session = new LlamaChatSession({
-                contextSequence: this.context.getSequence(),
+                contextSequence: sequence,
                 history: history,
                 systemPrompt: `
                     Você é um assistente especializado em:
