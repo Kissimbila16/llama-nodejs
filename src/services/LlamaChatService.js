@@ -45,13 +45,13 @@ export class LlamaChatService extends IChatService {
      */
     async initialize() {
         try {
-            this.logger.info('🤖 Inicializando modelo Llama...');
+            this.logger.info('Inicializando modelo Llama...');
 
             this.llama = await getLlama({
                 gpu: this.config.getGpuType()
             });
 
-            this.logger.info(`📂 Modelo: ${this.config.getModelPath()}`);
+            this.logger.info(`Modelo: ${this.config.getModelPath()}`);
 
             this.model = await this.llama.loadModel({
                 modelPath: this.config.getModelPath(),
@@ -86,7 +86,7 @@ export class LlamaChatService extends IChatService {
                 sequences: 1
             });
 
-            this.logger.info('✅ Modelo carregado com sucesso!');
+            this.logger.info(' Modelo carregado com sucesso!');
 
             /**
              * Warmup do modelo
@@ -205,7 +205,7 @@ export class LlamaChatService extends IChatService {
             ).toFixed(2);
 
             this.logger.info(
-                `🤖 Resposta concluída | ⏱ ${duration} ms | 🧠 ΔRAM ${memoryDiff} MB`
+                ` Resposta concluída | ⏱ ${duration} ms | 🧠 ΔRAM ${memoryDiff} MB`
             );
 
             return response;
@@ -247,7 +247,7 @@ export class LlamaChatService extends IChatService {
      */
     async dispose() {
         try {
-            this.logger.info('🛑 Finalizando modelo...');
+            this.logger.info('Finalizando modelo...');
 
             await this.context?.dispose?.();
             await this.model?.dispose?.();
